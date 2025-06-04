@@ -2,11 +2,11 @@
 
 [move]
 version = 3
-manifest_digest = "7C15CF1B9825B1BAC69FE75DF43A7E6234DF8DF99E26E22E40A4A0E66022FE30"
+manifest_digest = "C6FD2796EAB5DEBE061FB21C309B5AB9C1A466BC0990248EF43BF40352AE5389"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 dependencies = [
   { id = "Sui", name = "Sui" },
-  { id = "mint", name = "mint" },
+  { id = "fbtc", name = "fbtc" },
 ]
 
 [[move.package]]
@@ -22,28 +22,14 @@ dependencies = [
 ]
 
 [[move.package]]
-id = "mint_manager"
-source = { local = "../mint_manager" }
+id = "fbtc"
+source = { local = "../fbtc-sui" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },
 ]
 
 [move.toolchain-version]
-compiler-version = "1.38.0"
+compiler-version = "1.49.1"
 edition = "2024.beta"
 flavor = "sui"
-
-[env]
-
-[env.testnet]
-chain-id = "4c78adac"
-original-published-id = "0xcdc0da0fcca75cb1ec9fe27988b6b7ceecf0a9c3afb0441c7c37fe1bd3a74387"
-latest-published-id = "0xcdc0da0fcca75cb1ec9fe27988b6b7ceecf0a9c3afb0441c7c37fe1bd3a74387"
-published-version = "1"
-
-[env.mainnet]
-chain-id = "35834a8a"
-original-published-id = "0x9ca148bbd99b43c568418ed59dfd586b21995af71374dcd8140a3f5b36777b72"
-latest-published-id = "0x6f860a2558e084e82f077c939adfcda8fc841ed48f758e0e537592d8202c7644"
-published-version = "4"
