@@ -9,7 +9,8 @@ module free_tunnel_sui::atomic_mint {
     use free_tunnel_sui::utils;
     use free_tunnel_sui::req_helpers::{Self, ReqHelpersStorage, EXPIRE_PERIOD, EXPIRE_EXTRA_PERIOD};
     use free_tunnel_sui::permissions::{Self, PermissionsStorage};
-    use minter_manager::minter_manager::{Self, MinterCap, TreasuryCapManager};
+    use deployer::access_control::{AccessConfig, MinterCap, BurnerCap};
+    use deployer::fbtc::{mint, burn, TreasuryCapManager};
 
 
     // =========================== Constants ==========================
@@ -32,6 +33,7 @@ module free_tunnel_sui::atomic_mint {
         proposedBurn: table::Table<vector<u8>, address>,
         burningCoins: bag::Bag,     // tokenIndex -> Pending Coin Object
         minterCaps: bag::Bag,      // tokenIndex -> MinterCap
+        burnerCaps: bag::Bag,      // tokenIndex -> BurnerCap
     }
 
     public struct TokenMintProposed has copy, drop {
@@ -82,6 +84,7 @@ module free_tunnel_sui::atomic_mint {
             proposedBurn: table::new(ctx),
             burningCoins: bag::new(ctx),
             minterCaps: bag::new(ctx),
+            burnerCaps: bag::new(ctx),
         };
         transfer::public_share_object(atomicMintStorage);
     }
@@ -99,18 +102,20 @@ module free_tunnel_sui::atomic_mint {
         req_helpers::addTokenInternal<CoinType>(tokenIndex, decimals, storeR);
     }
 
-    public entry fun transferMinterCap<CoinType>(
+    public entry fun transferCaps<CoinType>(
         tokenIndex: u8,
-        minterCap: MinterCap<CoinType>,
+        minterCap: MinterCap,
+        burnerCap: BurnerCap,
         storeA: &mut AtomicMintStorage,
         storeR: &mut ReqHelpersStorage,
     ){
         req_helpers::checkTokenType<CoinType>(tokenIndex, storeR);
         assert!(!storeA.minterCaps.contains(tokenIndex), EALREADY_HAVE_MINTERCAP);
         storeA.minterCaps.add(tokenIndex, minterCap);
+        storeA.burnerCaps.add(tokenIndex, burnerCap);
     }
 
-    public entry fun removeToken<CoinType>(
+    public entry fun removeToken(
         tokenIndex: u8,
         storeA: &mut AtomicMintStorage,
         storeP: &mut PermissionsStorage,
@@ -120,8 +125,10 @@ module free_tunnel_sui::atomic_mint {
         permissions::assertOnlyAdmin(storeP, ctx);
         req_helpers::removeTokenInternal(tokenIndex, storeR);
         if (storeA.minterCaps.contains(tokenIndex)) {
-            let minterCap: MinterCap<CoinType> = storeA.minterCaps.remove(tokenIndex);
-            minter_manager::destroyMinterCap<CoinType>(minterCap);
+            let minterCap: MinterCap = storeA.minterCaps.remove(tokenIndex);
+            let burnerCap: BurnerCap = storeA.burnerCaps.remove(tokenIndex);
+            transfer::public_transfer(minterCap, ctx.sender());
+            transfer::public_transfer(burnerCap, ctx.sender());
         }
     }
 
@@ -179,7 +186,8 @@ module free_tunnel_sui::atomic_mint {
         yParityAndS: vector<vector<u8>>,
         executors: vector<vector<u8>>,
         exeIndex: u64,
-        treasuryCapManager: &mut TreasuryCapManager<CoinType>,
+        fbtcConfig: &mut AccessConfig,
+        treasuryCapManager: &mut TreasuryCapManager,
         storeA: &mut AtomicMintStorage,
         storeP: &mut PermissionsStorage,
         storeR: &ReqHelpersStorage,
@@ -199,10 +207,11 @@ module free_tunnel_sui::atomic_mint {
         let amount = req_helpers::amountFrom(reqId, storeR);
         let tokenIndex = req_helpers::tokenIndexFrom<CoinType>(reqId, storeR);
 
-        minter_manager::mint<CoinType>(
-            amount, recipient, storeA.minterCaps.borrow_mut(tokenIndex),
-            treasuryCapManager, ctx
+        let coinMinted = mint(
+            amount, treasuryCapManager, storeA.minterCaps.borrow(tokenIndex),
+            fbtcConfig, ctx
         );
+        transfer::public_transfer(coinMinted, recipient);
         event::emit(TokenMintExecuted{ reqId, recipient });
     }
 
@@ -281,7 +290,8 @@ module free_tunnel_sui::atomic_mint {
         yParityAndS: vector<vector<u8>>,
         executors: vector<vector<u8>>,
         exeIndex: u64,
-        treasuryCapManager: &mut TreasuryCapManager<CoinType>,
+        fbtcConfig: &mut AccessConfig,
+        treasuryCapManager: &mut TreasuryCapManager,
         storeA: &mut AtomicMintStorage,
         storeP: &mut PermissionsStorage,
         storeR: &ReqHelpersStorage,
@@ -304,9 +314,9 @@ module free_tunnel_sui::atomic_mint {
         let coinInside = storeA.burningCoins.borrow_mut(tokenIndex);
         let coinBurned = coin::split(coinInside, amount, ctx);
 
-        minter_manager::burn<CoinType>(
-            amount, vector::singleton(coinBurned),
-            storeA.minterCaps.borrow_mut(tokenIndex), treasuryCapManager, ctx
+        burn(
+            coinBurned, treasuryCapManager, 
+            storeA.burnerCaps.borrow(tokenIndex), fbtcConfig
         );
         event::emit(TokenBurnExecuted{ reqId, proposer });
     }
