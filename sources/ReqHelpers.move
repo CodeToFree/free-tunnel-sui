@@ -10,7 +10,7 @@ module free_tunnel_sui::req_helpers {
 
 
     // =========================== Constants ==========================
-    const CHAIN: u8 = 0xa0;
+    const CHAIN: u8 = 0xa4;
 
     const ETOKEN_INDEX_OCCUPIED: u64 = 0;
     const ETOKEN_INDEX_CANNOT_BE_ZERO: u64 = 1;
@@ -24,7 +24,7 @@ module free_tunnel_sui::req_helpers {
     const ETOKEN_TYPE_MISMATCH: u64 = 9;
     const EINVALID_ACTION: u64 = 10;
 
-    public(package) fun BRIDGE_CHANNEL(): vector<u8> { b"Sui Bridge" }
+    public(package) fun BRIDGE_CHANNEL(): vector<u8> { b"FBTC Bridge" }
     public(package) fun PROPOSE_PERIOD(): u64 { 172800 }         // 48 hours
     public(package) fun EXPIRE_PERIOD(): u64 { 259200 }          // 72 hours
     public(package) fun EXPIRE_EXTRA_PERIOD(): u64 { 345600 }    // 96 hours
