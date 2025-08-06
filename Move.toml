@@ -3,12 +3,12 @@ name = "free_tunnel_sui"
 edition = "2024.beta" 
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/mainnet" }
-mint_manager = { local = "../mint_manager" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "2c930c25f8d3" }
+mbtc = { local = "../mbtc-sui" }
 
 [addresses]
 free_tunnel_sui = "0x0"
-mint = "0x__package_id_of_mint_manager__"
+mbtc = "0xd1a91b46bd6d966b62686263609074ad16cfdffc63c31a4775870a2d54d20c6b"
 
 [dev-dependencies]
 

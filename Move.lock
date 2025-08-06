@@ -2,48 +2,56 @@
 
 [move]
 version = 3
-manifest_digest = "7C15CF1B9825B1BAC69FE75DF43A7E6234DF8DF99E26E22E40A4A0E66022FE30"
+manifest_digest = "5DC114F98EE963C05E80DBA124867B1B2D86373293A53209A9F713DC960212B6"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 dependencies = [
   { id = "Sui", name = "Sui" },
-  { id = "mint", name = "mint" },
+  { id = "mbtc", name = "mbtc" },
+]
+
+[[move.package]]
+id = "Bridge"
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "2c930c25f8d3", subdir = "crates/sui-framework/packages/bridge" }
+
+dependencies = [
+  { id = "MoveStdlib", name = "MoveStdlib" },
+  { id = "Sui", name = "Sui" },
+  { id = "SuiSystem", name = "SuiSystem" },
 ]
 
 [[move.package]]
 id = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "2c930c25f8d3", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 id = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/testnet", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "2c930c25f8d3", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
 ]
 
 [[move.package]]
-id = "mint_manager"
-source = { local = "../mint_manager" }
+id = "SuiSystem"
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "2c930c25f8d3", subdir = "crates/sui-framework/packages/sui-system" }
 
 dependencies = [
+  { id = "MoveStdlib", name = "MoveStdlib" },
   { id = "Sui", name = "Sui" },
 ]
 
+[[move.package]]
+id = "mbtc"
+source = { local = "../mbtc-sui" }
+
+dependencies = [
+  { id = "Bridge", name = "Bridge" },
+  { id = "MoveStdlib", name = "MoveStdlib" },
+  { id = "Sui", name = "Sui" },
+  { id = "SuiSystem", name = "SuiSystem" },
+]
+
 [move.toolchain-version]
-compiler-version = "1.38.0"
+compiler-version = "1.51.3"
 edition = "2024.beta"
 flavor = "sui"
-
-[env]
-
-[env.testnet]
-chain-id = "4c78adac"
-original-published-id = "0xcdc0da0fcca75cb1ec9fe27988b6b7ceecf0a9c3afb0441c7c37fe1bd3a74387"
-latest-published-id = "0xcdc0da0fcca75cb1ec9fe27988b6b7ceecf0a9c3afb0441c7c37fe1bd3a74387"
-published-version = "1"
-
-[env.mainnet]
-chain-id = "35834a8a"
-original-published-id = "0x9ca148bbd99b43c568418ed59dfd586b21995af71374dcd8140a3f5b36777b72"
-latest-published-id = "0x6f860a2558e084e82f077c939adfcda8fc841ed48f758e0e537592d8202c7644"
-published-version = "4"
